@@ -1,0 +1,39 @@
+/* Frontend/home.css */
+body {
+  background: #071018;
+  color: #e6eef2;
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+
+.main-header {
+  text-align: center;
+  padding: 28px 0;
+}
+
+.home-main {
+  max-width: 900px;
+  margin: 10px auto;
+}
+
+.tool-list {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tool-card {
+  background: #0f1620;
+  padding: 18px;
+  border-radius: 10px;
+  width: 260px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(200,200,200,0.03);
+}
+
+.tool-card:hover {
+  transform: translateY(-4px);
+  transition: transform .2s;
+}

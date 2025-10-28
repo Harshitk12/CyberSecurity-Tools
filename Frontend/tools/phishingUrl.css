@@ -1,0 +1,88 @@
+/* Frontend/tools/phishingUrl.css */
+.tool-main {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #0f1620;
+  border-radius: 12px;
+  color: #e6eef2;
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+#urlInput {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+
+#checkBtn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.example {
+  margin-right: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #2c3e50;
+  background: transparent;
+  color: #cfe7ff;
+}
+
+.result-section {
+  margin-top: 18px;
+  background: #071018;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #123041;
+}
+
+.hidden { display: none; }
+
+#verdict {
+  margin: 6px 0;
+}
+
+#scoreBox {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.advice { margin-bottom: 10px; }
+
+.features-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.features-table td, .features-table th {
+  padding: 8px;
+  border-bottom: 1px solid rgba(200,200,200,0.06);
+}
+
+.site-header {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  max-width:900px;
+  margin: 20px auto 0;
+  color:#e6eef2;
+}
+
+.back-link {
+  color: #9ad3ff;
+  text-decoration: none;
+  font-weight: 600;
+}

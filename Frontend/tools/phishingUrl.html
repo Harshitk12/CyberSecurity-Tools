@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Phishing URL Detector</title>
+  <link rel="stylesheet" href="../home.css">
+  <link rel="stylesheet" href="phishingUrl.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Phishing URL Detector</h1>
+    <a class="back-link" href="../home.html">⬅ Back</a>
+  </header>
+
+  <main class="tool-main">
+    <section class="input-section">
+      <label for="urlInput">Enter URL to check</label>
+      <input id="urlInput" placeholder="https://example.com/login" />
+      <button id="checkBtn">Check URL</button>
+      <div id="examples">
+        <strong>Try examples:</strong>
+        <button class="example">https://google.com</button>
+        <button class="example">https://github.com/</button>
+        <button class="example">http://malware.testing.google.test/testing/malware/</button>
+      </div>
+    </section>
+
+    <section id="result" class="result-section hidden">
+      <h2 id="verdict"></h2>
+      <div id="scoreBox">
+        Score: <span id="score"></span>
+      </div>
+
+      <div id="advice" class="advice"></div>
+
+      <div id="apiDetails" class="api-details"></div>
+
+    </section>
+  </main>
+
+  <script src="phishingUrl.js"></script>
+</body>
+</html>

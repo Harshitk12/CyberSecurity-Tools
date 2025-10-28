@@ -1,5 +1,5 @@
 // Frontend/tools/phishingUrl.js
-const apiBase = "http://localhost:5000"; // your Flask server
+const apiBase = "http://127.0.0.1:8001";// your Flask server
 
 document.addEventListener("DOMContentLoaded", () => {
   const urlInput = document.getElementById("urlInput");

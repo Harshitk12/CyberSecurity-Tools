@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>🧠 Image Security — EXIF Inspector</title>
+    <link rel="stylesheet" href="imageSecurity.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <h1>🧠 Image Security — EXIF Inspector</h1>
+      <button id="themeToggle">🌙 Dark Mode</button>
+
+      <div id="dropZone">
+        <input type="file" id="fileInput" accept="image/*" />
+        <p>or drag & drop an image here</p>
+      </div>
+
+      <img id="preview" alt="preview" />
+
+      <div id="actions">
+        <button id="inspectBtn">🔍 Inspect EXIF</button>
+        <button id="stripGpsBtn" class="hidden">🗺️ Remove GPS</button>
+        <button id="stripCamBtn" class="hidden">📷 Remove Camera Info</button>
+        <button id="stripAllBtn" class="hidden">❌ Remove All Metadata</button>
+        <button id="downloadBtn" class="hidden">📄 Download JSON</button>
+      </div>
+
+      <div id="results" class="hidden">
+        <h2>Metadata Report</h2>
+        <div id="fileInfo"></div>
+        <div id="gpsInfo"></div>
+        <div id="map" style="height: 300px; margin-top: 16px;"></div>
+        <h3>📷 Detailed EXIF</h3>
+        <pre id="detailed"></pre>
+        <h3>🧾 All EXIF Tags</h3>
+        <div id="allTags"></div>
+      </div>
+    </div>
+
+    <script src="imageSecurity.js"></script>
+  </body>
+</html>

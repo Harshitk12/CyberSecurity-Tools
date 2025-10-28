@@ -16,7 +16,8 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 app = Flask(__name__)
-CORS(app)  # allow local frontend during dev
+CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5500", "http://localhost:5500"]}})
+
 
 def build_prompt_for_url(url: str) -> str:
     """
@@ -123,5 +124,7 @@ def check_with_gemini():
         return jsonify({"error": "Internal error", "details": str(e)}), 500
 
 if __name__ == "__main__":
-    print("Starting Flask on http://127.0.0.1:5000")
-    app.run(debug=True, port=5000)
+    print("Starting Flask on http://127.0.0.1:8001")
+    # use_reloader=False prevents Werkzeug from spawning a child that can change logs
+    app.run(host="127.0.0.1", port=8001, debug=True, use_reloader=False)
+

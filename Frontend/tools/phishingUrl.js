@@ -31,14 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!resp.ok) throw new Error(data.error || "Unknown error");
 
       // Show model text and verdict
+      const wordsArray = data.model_text.split(' ');
+      const firstWord = wordsArray[0];
       resultSection.classList.remove("hidden");
-      verdictEl.textContent = (data.verdict || "unknown").toUpperCase();
+      verdictEl.textContent = (firstWord || "unknown").toUpperCase();
       adviceEl.textContent = data.model_text || "";
       // no numeric score from Gemini in this simple flow
       scoreEl.textContent = "-";
 
       // style
-      verdictEl.style.color = data.verdict === "phishing" ? "#ff6b6b" : "#7efc6a";
+      verdictEl.style.color = firstWord.toLowerCase() === "phishing" ? "#ff6b6b" : "#7efc6a";
     } catch (err) {
       alert("Error: " + (err.message || err));
     } finally {

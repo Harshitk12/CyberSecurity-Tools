@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Steganography</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-area">
+                <h1><i data-lucide="lock"></i> StegoVault</h1>
+                <p>Adaptive LSB Steganography Tool</p>
+            </div>
+            <!-- Dark Mode Toggle Button (Targeted by your JS) -->
+            <button id="theme-btn" class="theme-toggle" aria-label="Toggle Dark Mode">
+                <i data-lucide="moon"></i>
+            </button>
+        </header>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('encode')">
+                    <i data-lucide="file-plus"></i> Encode
+                </button>
+                <button class="tab-btn" onclick="switchTab('decode')">
+                    <i data-lucide="file-search"></i> Decode
+                </button>
+            </div>
+
+            <!-- ENCODE SECTION -->
+            <div id="encode-panel" class="panel active">
+                <form id="encode-form">
+                    <div class="drop-zone" id="encode-drop">
+                        <i data-lucide="image"></i>
+                        <p>Click or Drop Cover Image Here</p>
+                        <input type="file" name="image" id="encode-file" accept="image/png" required hidden>
+                    </div>
+                    
+                    <div id="encode-preview-container" class="preview-box hidden">
+                        <img id="encode-preview" src="" alt="Preview">
+                        <span id="encode-filename"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Secret Message</label>
+                        <textarea name="message" placeholder="Type your secret message here..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="action-btn">
+                        <span>Hide Data & Download</span>
+                        <i data-lucide="download"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- DECODE SECTION -->
+            <div id="decode-panel" class="panel">
+                <form id="decode-form">
+                    <div class="drop-zone" id="decode-drop">
+                        <i data-lucide="image"></i>
+                        <p>Click or Drop Stego Image Here</p>
+                        <input type="file" name="image" id="decode-file" accept="image/png" required hidden>
+                    </div>
+                    
+                    <div id="decode-preview-container" class="preview-box hidden">
+                        <img id="decode-preview" src="" alt="Preview">
+                        <span id="decode-filename"></span>
+                    </div>
+
+                    <button type="submit" class="action-btn secondary">
+                        <span>Extract Message</span>
+                        <i data-lucide="unlock"></i>
+                    </button>
+                </form>
+
+                <div id="result-area" class="result-area hidden">
+                    <label>Decoded Message:</label>
+                    <div class="message-box" id="decoded-output"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="status-toast" class="toast hidden">Processing...</div>
+    </div>
+
+    <!-- Main Logic -->
+    <script src="script.js"></script>
+    
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

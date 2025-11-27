@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Reputation Checker - CyberShield</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #0a1628 0%, #0f1d33 50%, #1a1140 100%);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .cyber-card {
+            background: rgba(15, 29, 51, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .cyber-input {
+            background: rgba(10, 22, 40, 0.8);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cyber-input:focus {
+            border-color: #22d3ee;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+            outline: none;
+        }
+
+        .cyber-button {
+            background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.6);
+        }
+
+        .cyber-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(34, 211, 238, 0.2);
+            border-left-color: #22d3ee;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stat-card {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(34, 211, 238, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .badge {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            color: #22d3ee;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    
+    <!-- Main Container -->
+    <div class="max-w-4xl w-full">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="inline-block mb-4">
+                <span class="badge px-4 py-2 rounded-full text-sm font-semibold">
+                    🛡️ ENTERPRISE-GRADE SECURITY
+                </span>
+            </div>
+            <h1 class="text-5xl font-bold text-white glow-text mb-4">
+                IP Reputation Checker
+            </h1>
+            <p class="text-xl text-gray-300">
+                Analyze IP addresses for malicious activity and security threats in real-time
+            </p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="cyber-card rounded-2xl p-8 shadow-2xl mb-8">
+            
+            <!-- Input Section -->
+            <div class="mb-6">
+                <label for="target" class="block text-sm font-semibold text-cyan-400 mb-3 tracking-wide">
+                    IP ADDRESS
+                </label>
+                <input 
+                    type="text" 
+                    id="target" 
+                    class="cyber-input w-full px-6 py-4 rounded-xl text-white text-lg" 
+                    placeholder="Enter IP address (e.g., 8.8.8.8)"
+                >
+            </div>
+
+            <!-- Check Button -->
+            <button 
+                id="checkIpBtn" 
+                class="cyber-button w-full text-white font-bold py-4 px-6 rounded-xl text-lg"
+            >
+                Check IP Address
+            </button>
+        </div>
+
+        <!-- Results Area -->
+        <div id="resultsArea" class="cyber-card rounded-2xl p-8 shadow-2xl min-h-[200px]">
+            
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="hidden flex-col justify-center items-center py-8">
+                <div class="spinner mb-4"></div>
+                <span class="text-cyan-400 text-lg font-medium">Analyzing IP address...</span>
+            </div>
+
+            <!-- Default State -->
+            <div id="defaultState" class="text-center py-12">
+                <svg class="w-20 h-20 mx-auto mb-4 text-cyan-400 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <p class="text-gray-400 text-lg">Enter an IP address above to begin security analysis</p>
+            </div>
+
+            <!-- Results Content -->
+            <div id="resultsContent" class="hidden">
+                <!-- Results will be injected here -->
+            </div>
+        </div>
+
+        <!-- Stats Footer -->
+        <div class="grid grid-cols-3 gap-4 mt-8">
+            <div class="stat-card rounded-xl p-6 text-center">
+                <div class="text-4xl font-bold text-cyan-400 mb-2">99.9%</div>
+                <div class="text-gray-400 text-sm font-medium">Detection Rate</div>
+            </div>
+            <div class="stat-card rounded-xl p-6 text-center">
+                <div class="text-4xl font-bold text-cyan-400 mb-2">Real-time</div>
+                <div class="text-gray-400 text-sm font-medium">Analysis</div>
+            </div>
+            <div class="stat-card rounded-xl p-6 text-center">
+                <div class="text-4xl font-bold text-cyan-400 mb-2">24/7</div>
+                <div class="text-gray-400 text-sm font-medium">Protection</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        const checkIpBtn = document.getElementById('checkIpBtn');
+        const targetInput = document.getElementById('target');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const defaultState = document.getElementById('defaultState');
+        const resultsContent = document.getElementById('resultsContent');
+
+        function isValidIP(ip) {
+            const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipRegex.test(ip)) return false;
+            
+            const parts = ip.split('.');
+            return parts.every(part => {
+                const num = parseInt(part);
+                return num >= 0 && num <= 255;
+            });
+        }
+
+        async function checkIPReputation(ip) {
+            try {
+                // Call YOUR OWN backend instead of VirusTotal directly
+                // This keeps your API key safe in the server's .env file
+                const response = await fetch('http://localhost:3000/check-reputation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        target: ip,
+                        type: 'ip'
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error checking IP:', error);
+                throw error;
+            }
+        }
+
+        function displayResults(data, ip) {
+            const attributes = data.data.attributes;
+            const stats = attributes.last_analysis_stats;
+            const totalEngines = stats.malicious + stats.suspicious + stats.undetected + stats.harmless;
+            
+            // Calculate reputation score
+            const reputationScore = attributes.reputation || 0;
+            
+            // Determine threat level
+            let threatLevel = 'clean';
+            let threatColor = 'green';
+            let threatIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />`;
+            
+            if (stats.malicious > 0) {
+                threatLevel = 'malicious';
+                threatColor = 'red';
+                threatIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />`;
+            } else if (stats.suspicious > 0) {
+                threatLevel = 'suspicious';
+                threatColor = 'yellow';
+                threatIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />`;
+            }
+
+            const ownerName = attributes.as_owner || 'Unknown';
+            const country = attributes.country || 'Unknown';
+
+            resultsContent.innerHTML = `
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">Report for: ${ip}</h2>
+                </div>
+
+                <!-- Threat Status Banner -->
+                <div class="flex items-center justify-between p-6 bg-${threatColor}-900/30 border border-${threatColor}-500/30 rounded-xl mb-6">
+                    <div>
+                        <div class="text-${threatColor}-400 font-semibold text-xl mb-1 capitalize">
+                            Status: ${threatLevel}
+                        </div>
+                        <div class="text-gray-300 text-sm">
+                            ${stats.malicious > 0 ? `Detected by ${stats.malicious} security vendor${stats.malicious > 1 ? 's' : ''}` : 'No threats detected'}
+                        </div>
+                    </div>
+                    <svg class="w-16 h-16 text-${threatColor}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${threatIcon}
+                    </svg>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="result-grid mb-6">
+                    <!-- Analysis Stats -->
+                    <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+                        <div class="text-gray-400 text-sm mb-3 font-semibold">Analysis Stats:</div>
+                        <div class="space-y-2 text-lg">
+                            <div><span class="text-red-400 font-bold">${stats.malicious}</span> <span class="text-gray-300">malicious</span> • <span class="text-yellow-400 font-bold">${stats.suspicious}</span> <span class="text-gray-300">suspicious</span></div>
+                            <div><span class="text-gray-400 font-bold">${stats.undetected}</span> <span class="text-gray-300">undetected</span> • <span class="text-green-400 font-bold">${stats.harmless}</span> <span class="text-gray-300">harmless</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Owner -->
+                    <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+                        <div class="text-gray-400 text-sm mb-3 font-semibold">Owner (ASN):</div>
+                        <div class="text-white text-lg font-medium">${ownerName}</div>
+                        ${country !== 'Unknown' ? `<div class="text-cyan-400 text-sm mt-2">${country}</div>` : ''}
+                    </div>
+
+                    <!-- Reputation Score -->
+                    <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+                        <div class="text-gray-400 text-sm mb-3 font-semibold">Reputation Score:</div>
+                        <div class="text-white text-3xl font-bold">${reputationScore}</div>
+                    </div>
+
+                    <!-- Type -->
+                    <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+                        <div class="text-gray-400 text-sm mb-3 font-semibold">Type:</div>
+                        <div class="text-white text-lg font-medium">IP Address</div>
+                    </div>
+                </div>
+
+                <!-- VirusTotal Link -->
+                <div class="text-center">
+                    <a href="https://www.virustotal.com/gui/ip-address/${ip}" target="_blank" class="inline-flex items-center text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+                        View full report on VirusTotal
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                </div>
+            `;
+        }
+
+        function displayError(message) {
+            resultsContent.innerHTML = `
+                <div class="text-center py-12">
+                    <svg class="w-20 h-20 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-red-400 text-lg font-medium mb-2">Error</p>
+                    <p class="text-gray-400">${message}</p>
+                </div>
+            `;
+        }
+
+        checkIpBtn.addEventListener('click', async () => {
+            const ipAddress = targetInput.value.trim();
+            
+            if (!ipAddress) {
+                displayError('Please enter an IP address');
+                defaultState.classList.add('hidden');
+                resultsContent.classList.remove('hidden');
+                return;
+            }
+
+            if (!isValidIP(ipAddress)) {
+                displayError('Please enter a valid IP address');
+                defaultState.classList.add('hidden');
+                resultsContent.classList.remove('hidden');
+                return;
+            }
+
+            // Show loading state
+            defaultState.classList.add('hidden');
+            resultsContent.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            loadingSpinner.classList.add('flex');
+            checkIpBtn.disabled = true;
+
+            try {
+                const data = await checkIPReputation(ipAddress);
+                
+                loadingSpinner.classList.add('hidden');
+                resultsContent.classList.remove('hidden');
+                displayResults(data, ipAddress);
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                resultsContent.classList.remove('hidden');
+                displayError('Failed to check IP reputation. Please ensure the backend server is running.');
+            } finally {
+                checkIpBtn.disabled = false;
+            }
+        });
+
+        // Allow Enter key to trigger check
+        targetInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkIpBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,47 +1,503 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>🧠 Image Security — EXIF Inspector</title>
-    <link rel="stylesheet" href="imageSecurity.css" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  </head>
-  <body>
-    <div id="app">
-      <h1>🧠 Image Security — EXIF Inspector</h1>
-      <button id="themeToggle">🌙 Dark Mode</button>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Security — EXIF Inspector</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/SJPMeIerEN2D6jTzQ=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20n6cR6XQYg/nL7PzB1/vYtS7Nf3W4V3D3Ew1m2QfFw=" crossorigin=""></script>
+    <style>
+        /* Custom styles to integrate with Tailwind and enhance dark mode */
+        :root {
+            --bg-dark: #0f172a; /* Slate 900 */
+            --card-dark: #1e293b; /* Slate 800 */
+            --accent: #22c55e; /* Emerald 500 */
+            --text-light: #f1f5f9; /* Slate 100 */
+        }
 
-      <div id="dropZone">
-        <input type="file" id="fileInput" accept="image/*" />
-        <p>or drag & drop an image here</p>
-      </div>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-      <img id="preview" alt="preview" />
+        /* Dark Mode variables for light mode */
+        body.light {
+            --bg-dark: #f1f5f9; /* Slate 100 */
+            --card-dark: #ffffff; /* White */
+            --text-light: #1e293b; /* Slate 800 */
+            --accent: #0f172a; /* Dark Accent for contrast */
+        }
 
-      <div id="actions">
-        <button id="inspectBtn">🔍 Inspect EXIF</button>
-        <button id="stripGpsBtn" class="hidden">🗺️ Remove GPS</button>
-        <button id="stripCamBtn" class="hidden">📷 Remove Camera Info</button>
-        <button id="stripAllBtn" class="hidden">❌ Remove All Metadata</button>
-        <button id="downloadBtn" class="hidden">📄 Download JSON</button>
-      </div>
+        #dropZone {
+            border: 3px dashed var(--accent);
+            background-color: var(--card-dark);
+            transition: all 0.2s ease-in-out;
+        }
 
-      <div id="results" class="hidden">
-        <h2>Metadata Report</h2>
-        <div id="fileInfo"></div>
-        <div id="gpsInfo"></div>
-        <div id="map" style="height: 300px; margin-top: 16px;"></div>
-        <h3>📷 Detailed EXIF</h3>
-        <pre id="detailed"></pre>
-        <h3>🧾 All EXIF Tags</h3>
-        <div id="allTags"></div>
-      </div>
+        #dropZone.dragover {
+            background-color: #334155; /* Slate 700 */
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+
+        #fileInput {
+            display: none; /* Hide the default file input */
+        }
+
+        /* Button base styling */
+        .btn-base {
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Primary Button */
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--bg-dark);
+            border: 1px solid var(--accent);
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #10b981; /* Emerald 500 hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(34, 197, 94, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Secondary/Strip Button */
+        .btn-secondary {
+            background-color: var(--card-dark);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--accent);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(34, 197, 94, 0.4);
+        }
+
+        /* Code Block/Result Display */
+        pre, #allTags, #fileInfo, #gpsInfo {
+            background-color: var(--card-dark);
+            border: 1px solid #334155; /* Slate 700 */
+            border-radius: 0.5rem;
+        }
+
+        /* Specific styles for map and detail panels */
+        #map {
+            height: 300px;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+        }
+    </style>
+</head>
+<body class="dark p-4 md:p-10 min-h-screen">
+    <!-- Custom Notification/Message Box -->
+    <div id="notification" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+
+    <div id="app" class="max-w-4xl mx-auto space-y-8">
+        <!-- Header and Theme Toggle -->
+        <div class="flex flex-col sm:flex-row justify-between items-center pb-4 border-b border-gray-700">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white">
+                <span class="text-3xl text-yellow-400">🧠</span> Image Security — EXIF Inspector
+            </h1>
+            <button id="themeToggle" class="btn-base bg-yellow-400 text-gray-900 mt-4 sm:mt-0 hover:bg-yellow-300">
+                ☀️ Light Mode
+            </button>
+        </div>
+
+        <!-- Drop Zone -->
+        <div id="dropZone" class="p-8 rounded-xl shadow-xl flex flex-col items-center cursor-pointer">
+            <input type="file" id="fileInput" accept="image/*" />
+            <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            <p class="text-gray-400 font-semibold text-lg">Click to Upload or Drag & Drop an Image (JPG/PNG)</p>
+        </div>
+
+        <!-- Image Preview and Actions -->
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Preview Panel -->
+            <div class="md:w-1/3 flex flex-col items-center p-4 bg-gray-900 rounded-xl shadow-lg border border-gray-700">
+                <h2 class="text-xl font-bold mb-4 text-gray-300">Image Preview</h2>
+                <img id="preview" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-2xl transition-opacity duration-500 opacity-0" />
+                <p id="imageFileName" class="mt-4 text-sm text-gray-400 italic hidden"></p>
+            </div>
+
+            <!-- Actions Panel -->
+            <div id="actions" class="md:w-2/3 p-6 bg-gray-900 rounded-xl shadow-lg border border-gray-700 space-y-4 flex flex-col">
+                <h2 class="text-xl font-bold text-gray-300 mb-2">Metadata Tools</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="inspectBtn" class="btn-base btn-primary">
+                        🔍 Inspect EXIF
+                    </button>
+                    <button id="downloadBtn" class="btn-base btn-secondary hidden">
+                        📄 Download JSON
+                    </button>
+                </div>
+
+                <div class="border-t border-gray-700 pt-4 space-y-3">
+                    <h3 class="text-lg font-semibold text-red-400">Stripping Tools (Simulated)</h3>
+                    <button id="stripGpsBtn" class="btn-base btn-secondary w-full hidden">
+                        🗺️ Remove GPS Data
+                    </button>
+                    <button id="stripCamBtn" class="btn-base btn-secondary w-full hidden">
+                        📷 Remove Camera Info
+                    </button>
+                    <button id="stripAllBtn" class="btn-base btn-secondary w-full hidden">
+                        ❌ Remove All Metadata
+                    </button>
+                    <p id="stripWarning" class="text-sm text-red-500 italic mt-2 hidden">
+                        * Stripping features require server-side processing and are simulated here.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div id="results" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-accent">Metadata Analysis Report</h2>
+
+            <div id="fileInfo" class="p-4 text-sm"></div>
+            <div id="gpsInfo" class="p-4 text-sm hidden"></div>
+
+            <!-- Map View -->
+            <div id="map"></div>
+
+            <!-- Detailed EXIF -->
+            <div class="space-y-3">
+                <h3 class="text-xl font-bold text-gray-300">📷 Detailed EXIF</h3>
+                <pre id="detailed" class="p-4 overflow-x-auto text-sm"></pre>
+            </div>
+
+            <!-- All Tags -->
+            <div class="space-y-3">
+                <h3 class="text-xl font-bold text-gray-300">🧾 All EXIF Tags (Scrollable)</h3>
+                <div id="allTags" class="p-4 max-h-96 overflow-y-auto text-sm"></div>
+            </div>
+        </div>
     </div>
 
-    <script src="imageSecurity.js"></script>
-  </body>
+    <script>
+        // --- Single File JavaScript Logic ---
+        
+        // --- DOM Elements ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const inspectBtn = document.getElementById('inspectBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const stripGpsBtn = document.getElementById('stripGpsBtn');
+        const stripCamBtn = document.getElementById('stripCamBtn');
+        const stripAllBtn = document.getElementById('stripAllBtn');
+        const resultsDiv = document.getElementById('results');
+        const detailedPre = document.getElementById('detailed');
+        const allTagsDiv = document.getElementById('allTags');
+        const fileInfoDiv = document.getElementById('fileInfo');
+        const gpsInfoDiv = document.getElementById('gpsInfo');
+        const imageFileName = document.getElementById('imageFileName');
+        const stripWarning = document.getElementById('stripWarning');
+        const themeToggle = document.getElementById('themeToggle');
+        const notificationDiv = document.getElementById('notification');
+
+        // --- State ---
+        let file = null;
+        let result = null;
+        let mapInstance = null;
+
+        // --- Utility: Custom Notification (replaces alert) ---
+        function showNotification(message, type = 'info') {
+            notificationDiv.textContent = message;
+            notificationDiv.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-opacity duration-300';
+            
+            if (type === 'error') {
+                notificationDiv.classList.add('bg-red-600');
+            } else if (type === 'success') {
+                notificationDiv.classList.add('bg-green-600');
+            } else {
+                notificationDiv.classList.add('bg-blue-600');
+            }
+            
+            notificationDiv.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                notificationDiv.classList.add('opacity-0', 'pointer-events-none');
+            }, 4000);
+        }
+
+        // --- File Selection Handler (Centralized) ---
+        function handleFileSelect(files) {
+            if (files.length === 0) return;
+
+            file = files[0];
+            const objectURL = URL.createObjectURL(file);
+            
+            preview.src = objectURL;
+            preview.classList.remove('opacity-0');
+            preview.classList.add('opacity-100');
+            preview.style.display = 'block';
+            
+            // Show filename and reset results
+            imageFileName.textContent = file.name;
+            imageFileName.classList.remove('hidden');
+            resultsDiv.classList.add('hidden');
+
+            // Enable Inspect button
+            inspectBtn.disabled = false;
+            inspectBtn.classList.remove('btn-secondary');
+            inspectBtn.classList.add('btn-primary');
+            
+            // Hide stripping buttons
+            [stripGpsBtn, stripCamBtn, stripAllBtn, downloadBtn, stripWarning].forEach(el => el.classList.add('hidden'));
+        }
+
+        // --- Event Listeners: File Input and Drop Zone ---
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files));
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFileSelect(e.dataTransfer.files);
+        });
+        
+        // --- Results Rendering ---
+        function showResults() {
+            resultsDiv.classList.remove("hidden");
+            stripGpsBtn.classList.remove("hidden");
+            stripCamBtn.classList.remove("hidden");
+            stripAllBtn.classList.remove("hidden");
+            downloadBtn.classList.remove("hidden");
+            stripWarning.classList.remove("hidden");
+
+            // 1. File Info
+            fileInfoDiv.innerHTML = `
+                <div class="font-bold text-lg mb-2 text-accent">File Details</div>
+                <p><strong>File Name:</strong> ${result.filename}</p>
+                <p><strong>SHA256 Hash:</strong> ${result.hash}</p>
+                <p><strong>Camera:</strong> ${result.sensitive?.camera_make || "Unknown"} ${result.sensitive?.camera_model || ""}</p>
+                <p><strong>Date:</strong> ${result.sensitive?.datetime || "N/A"}</p>
+                <p><strong>GPS Status:</strong> ${result.gps ? "✅ Present" : "❌ None"}</p>
+            `;
+            
+            // Reset map height
+            document.getElementById('map').style.height = '0';
+
+            // 2. GPS Info & Map
+            if (result.gps) {
+                gpsInfoDiv.classList.remove('hidden');
+                document.getElementById('map').style.height = '300px';
+
+                gpsInfoDiv.innerHTML = `
+                    <div class="font-bold text-lg mb-2 text-red-400">🚨 Geolocation Found!</div>
+                    <p><strong>Latitude:</strong> <span class="text-red-300">${result.gps.latitude.toFixed(4)}</span></p>
+                    <p><strong>Longitude:</strong> <span class="text-red-300">${result.gps.longitude.toFixed(4)}</span></p>
+                    <p class="mt-2 italic text-sm text-gray-400">This data can reveal the exact location where the photo was taken.</p>
+                `;
+
+                if (mapInstance) mapInstance.remove();
+
+                // Initialize map on the existing #map div
+                mapInstance = L.map("map").setView(
+                    [result.gps.latitude, result.gps.longitude],
+                    13
+                );
+
+                const isDark = document.body.classList.contains('dark');
+                const tileUrl = isDark ?
+                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' :
+                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+                L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(mapInstance);
+
+                L.marker([result.gps.latitude, result.gps.longitude])
+                    .addTo(mapInstance)
+                    .bindPopup(result.filename)
+                    .openPopup();
+            } else {
+                gpsInfoDiv.classList.add('hidden');
+                gpsInfoDiv.innerHTML = `<div class="font-bold text-lg mb-2 text-green-400">✅ No Geolocation Data Found.</div>`;
+            }
+
+            // 3. Detailed EXIF (from result.detailed)
+            detailedPre.textContent = JSON.stringify(result.detailed, null, 2);
+
+            // 4. All Tags (from result.exif_pretty)
+            allTagsDiv.innerHTML = Object.entries(result.exif_pretty || {})
+                .map(([k, v]) => `<div class="p-1 border-b border-gray-700 last:border-b-0"><b class="text-accent">${k}</b>: ${v}</div>`)
+                .join("");
+        }
+
+        // --- EXIF Inspection Logic (with Backoff) ---
+        inspectBtn.onclick = async () => {
+            if (!file) return showNotification("Please select an image!", 'error');
+            
+            inspectBtn.textContent = "Analyzing...";
+            inspectBtn.disabled = true;
+
+            const maxRetries = 3;
+            let success = false;
+            let res;
+
+            for (let i = 0; i < maxRetries; i++) {
+                const form = new FormData();
+                form.append("image", file);
+                try {
+                    res = await fetch("http://localhost:5009/upload", {
+                        method: "POST",
+                        body: form,
+                    });
+                    if (res.ok) {
+                        success = true;
+                        break;
+                    }
+                } catch (err) {
+                    // Wait with exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+            
+            inspectBtn.textContent = "🔍 Inspect EXIF";
+            inspectBtn.disabled = false;
+
+            if (success) {
+                try {
+                    result = await res.json();
+                    showResults();
+                    showNotification("EXIF inspection complete!", 'success');
+                } catch (e) {
+                    showNotification("Error parsing response from backend.", 'error');
+                }
+            } else {
+                showNotification("Error connecting to backend after multiple retries.", 'error');
+            }
+        };
+
+
+        // --- Stripping Logic (with Backoff) ---
+        async function strip(mode) {
+            if (!file) return;
+            showNotification(`Attempting to strip ${mode.toUpperCase()} metadata...`, 'info');
+            
+            const maxRetries = 3;
+            let success = false;
+            let blob;
+
+            for (let i = 0; i < maxRetries; i++) {
+                const form = new FormData();
+                form.append("image", file);
+                form.append("mode", mode);
+                
+                try {
+                    const res = await fetch("http://localhost:5009/strip", {
+                        method: "POST",
+                        body: form,
+                    });
+                    
+                    if (res.ok) {
+                        blob = await res.blob();
+                        success = true;
+                        break;
+                    }
+                } catch (err) {
+                    // Wait with exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+
+            if (success) {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `stripped_${mode}_${file.name}`;
+                a.click();
+                showNotification(`${mode.toUpperCase()} metadata stripped successfully. Download started!`, 'success');
+            } else {
+                showNotification("Failed to strip metadata after multiple retries! Check backend server status.", 'error');
+            }
+        }
+
+        stripGpsBtn.onclick = () => strip("gps");
+        stripCamBtn.onclick = () => strip("camera");
+        stripAllBtn.onclick = () => strip("all");
+
+        // --- Download JSON Report ---
+        downloadBtn.onclick = () => {
+            if (!result) return showNotification("No inspection results available to download.", 'error');
+            const blob = new Blob([JSON.stringify(result, null, 2)], {
+                type: "application/json",
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `report_${result.filename}.json`;
+            a.click();
+            showNotification("Download of EXIF report started.", 'success');
+        };
+
+        // --- Theme Toggle Logic ---
+        themeToggle.onclick = () => {
+            document.body.classList.toggle("dark");
+            document.body.classList.toggle("light");
+
+            const isDark = document.body.classList.contains("dark");
+            themeToggle.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+
+            // Refresh map tiles if the map is initialized
+            if (mapInstance && result && result.gps) {
+                const tileUrl = isDark ?
+                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' :
+                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+                // Remove old tile layers
+                mapInstance.eachLayer(layer => {
+                    if (layer instanceof L.TileLayer) {
+                        mapInstance.removeLayer(layer);
+                    }
+                });
+
+                // Add new tile layer
+                L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(mapInstance);
+            }
+        };
+
+
+        // --- Initial Setup ---
+        window.onload = () => {
+            // Set initial theme state
+            const isDark = document.body.classList.contains('dark');
+            if (isDark) {
+                document.body.classList.remove('light');
+                themeToggle.textContent = '☀️ Light Mode';
+            } else {
+                document.body.classList.add('light');
+                document.body.classList.remove('dark');
+                themeToggle.textContent = '🌙 Dark Mode';
+            }
+
+            // Disable inspect button until file is loaded
+            inspectBtn.disabled = true;
+            inspectBtn.classList.add('btn-secondary');
+            inspectBtn.classList.remove('btn-primary');
+        };
+
+    </script>
+</body>
 </html>

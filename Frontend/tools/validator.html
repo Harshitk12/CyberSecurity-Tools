@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberShield – QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #0d1b2a, #05070d 60%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 50px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 0 40px rgba(0, 195, 255, 0.08);
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      text-align: center;
+      font-size: 34px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #00f0ff, #5bb8ff);
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #9baecf;
+      font-size: 15px;
+      margin-bottom: 25px;
+    }
+
+    #reader {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 200, 255, 0.12);
+    }
+
+    .result-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      font-size: 15px;
+      color: #d3e1ff;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      margin-top: 14px;
+      margin-right: 8px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 500;
+      color: white;
+      transition: 0.25s;
+      background: linear-gradient(90deg, #009dff, #00d7ff);
+      box-shadow: 0 0 12px rgba(0,180,255,0.4);
+    }
+
+    .btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 20px rgba(0,200,255,0.6);
+    }
+
+    .stop {
+      background: linear-gradient(90deg, #ff4747, #ff6b6b);
+      box-shadow: 0 0 12px rgba(255,70,70,0.4);
+    }
+
+    .stop:hover {
+      box-shadow: 0 0 18px rgba(255,80,80,0.6);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      color: #e3eeff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #issues div {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 80, 80, 0.18);
+      border-left: 4px solid #ff5757;
+      font-size: 15px;
+      color: #ff9d9d;
+    }
+
+    #issues .ok {
+      background: rgba(0, 255, 170, 0.15) !important;
+      color: #7dffdf !important;
+      border-left-color: #00ffbf !important;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="title">CyberShield QR Scanner</div>
+    <div class="subtitle">AI-powered QR Safety & Threat Detection</div>
+
+    <div id="reader"></div>
+
+    <div class="result-box">
+      <b>Scanned Result:</b> <span id="resultText">(none)</span>
+    </div>
+
+    <button class="btn" onclick="startCam()">Start Camera</button>
+    <button class="btn stop" onclick="stopCam()">Stop Camera</button>
+
+    <h3 style="margin-top:30px;color:#9db7ff;">Check URL Safety</h3>
+    <input id="urlInput" placeholder="Paste or scan a URL here">
+
+    <button class="btn" onclick="checkUrl()">Analyze URL</button>
+
+    <div id="issues"></div>
+
+  </div>
+
+<script>
+let scanner = null;
+
+function startCam() {
+  if (scanner) return;
+
+  scanner = new Html5Qrcode("reader");
+
+  Html5Qrcode.getCameras().then(cams => {
+    if (cams.length) {
+      scanner.start(
+        cams[0].id,
+        { fps: 10, qrbox: 250 },   // DO NOT MODIFY (your instruction)
+        txt => {
+          document.getElementById("resultText").textContent = txt;
+          document.getElementById("urlInput").value = txt;
+        },
+        err => {}
+      );
+    } else {
+      alert("No camera found");
+    }
+  });
+}
+
+function stopCam() {
+  if (scanner) {
+    scanner.stop().then(() => scanner.clear());
+    scanner = null;
+  }
+}
+
+function checkUrl() {
+  const url = document.getElementById("urlInput").value.trim();
+  const issuesDiv = document.getElementById("issues");
+  issuesDiv.innerHTML = "";
+
+  if (!url) return issuesDiv.innerHTML = "<div>Please enter a URL.</div>";
+
+  const problems = [];
+  if (!url.startsWith("https://")) problems.push("Missing HTTPS (not secure)");
+  if (url.includes("@")) problems.push("Contains '@' – may hide real domain");
+  if (url.length > 80) problems.push("Suspiciously long URL");
+  if (url.match(/\d+\.\d+\.\d+\.\d+/)) problems.push("Uses IP instead of domain");
+
+  if (problems.length === 0)
+    issuesDiv.innerHTML = "<div class='ok'>No obvious threat detected</div>";
+  else
+    issuesDiv.innerHTML = problems.map(p => `<div>⚠️ ${p}</div>`).join("");
+}
+</script>
+
+</body>
+</html>
